@@ -19,7 +19,7 @@ class MemberRepositoryTest {
 
     @Test
     public void testMember() {
-        final Member member = new Member("memberA");
+        final Member member = new Member("memberA", 3);
         final Member savedMember = memberRepository.save(member);
 
         final Member findMember = memberRepository.findById(savedMember.getId()).get();
