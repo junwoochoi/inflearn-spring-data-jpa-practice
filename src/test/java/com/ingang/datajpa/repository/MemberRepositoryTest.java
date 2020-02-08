@@ -1,9 +1,16 @@
 package com.ingang.datajpa.repository;
 
+import com.ingang.datajpa.dto.MemberDto;
 import com.ingang.datajpa.entity.Member;
+import com.ingang.datajpa.entity.Team;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +24,8 @@ class MemberRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
+    TeamRepository teamRepository;
 
     @Test
     public void testMember() {
@@ -97,5 +106,77 @@ class MemberRepositoryTest {
 
         assertThat(result.size()).isEqualTo(2);
         assertThat(result).contains("AAA", "BBB");
+    }
+
+    @Test
+    void testDtoQuery() {
+        Member member1 = new Member("AAA", 10);
+        Team team = new Team("BBBBTEAM");
+        memberRepository.save(member1);
+        teamRepository.save(team);
+
+        member1.changeTeam(team);
+
+        List<MemberDto> memberDtos = memberRepository.findMemberDto();
+
+        assertThat(memberDtos.size()).isEqualTo(1);
+        assertThat(memberDtos.get(0).getId()).isEqualTo(member1.getId());
+        assertThat(memberDtos.get(0).getTeamname()).isEqualTo("BBBBTEAM");
+        assertThat(memberDtos.get(0).getUsername()).isEqualTo("AAA");
+    }
+
+    @Test
+    void testCollectionParameterBinding() {
+        Member member1 = new Member("AAA", 10);
+        Member member2 = new Member("BBB", 20);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> byNames = memberRepository.findByNames(Lists.list("AAA", "BBB"));
+
+        assertThat(byNames.size()).isEqualTo(2);
+        assertThat(byNames).contains(member1, member2);
+    }
+
+    @Test
+    void paging() {
+        //given
+        memberRepository.save(new Member("member1", 19));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 19));
+        memberRepository.save(new Member("member4", 19));
+        memberRepository.save(new Member("member5", 19));
+        memberRepository.save(new Member("member6", 19));
+        memberRepository.save(new Member("member7", 19));
+
+        //when
+        Page<Member> byPage = memberRepository.findByAge(19, PageRequest.of(1, 3, Sort.by(Sort.Direction.DESC, "username")));
+
+        //then
+        assertThat(byPage.getContent().size()).isEqualTo(3);
+        assertThat(byPage.getTotalElements()).isEqualTo(7);
+        assertThat(byPage.getTotalPages()).isEqualTo(3);
+
+        List<Integer> content = byPage.map(Member::getAge).getContent();
+        assertThat(content).containsOnly(19);
+    }
+
+    @Test
+    void slicing() {
+        //given
+        memberRepository.save(new Member("member1", 18));
+        memberRepository.save(new Member("member1", 19));
+        memberRepository.save(new Member("member1", 20));
+        memberRepository.save(new Member("member1", 22));
+        memberRepository.save(new Member("member1", 23));
+        memberRepository.save(new Member("member1", 25));
+        memberRepository.save(new Member("member1", 26));
+
+        //when
+        Slice<Member> bySlice = memberRepository.findByUsername("member1", PageRequest.of(1, 3, Sort.by(Sort.Direction.DESC, "age")));
+
+        //then
+        assertThat(bySlice.getContent().size()).isEqualTo(3);
     }
 }

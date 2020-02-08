@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,5 +42,25 @@ class MemberJpaRepositoryTest {
 
         final long count2 = memberJpaRepository.count();
         assertThat(count2).isEqualTo(0);
+    }
+
+    @Test
+    void paging() {
+        //given
+        memberJpaRepository.save(new Member("member1", 19));
+        memberJpaRepository.save(new Member("member2", 19));
+        memberJpaRepository.save(new Member("member3", 19));
+        memberJpaRepository.save(new Member("member4", 19));
+        memberJpaRepository.save(new Member("member5", 19));
+        memberJpaRepository.save(new Member("member6", 19));
+        memberJpaRepository.save(new Member("member7", 19));
+
+        //when
+        List<Member> byPage = memberJpaRepository.findByPage(19, 1, 3);
+        long totalCount = memberJpaRepository.totalCount(19);
+
+        //then
+        assertThat(byPage.size()).isEqualTo(3);
+        assertThat(totalCount).isEqualTo(7L);
     }
 }
