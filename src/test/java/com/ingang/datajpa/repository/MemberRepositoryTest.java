@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +28,8 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void testMember() {
@@ -178,5 +182,25 @@ class MemberRepositoryTest {
 
         //then
         assertThat(bySlice.getContent().size()).isEqualTo(3);
+    }
+
+    @Test
+    void testBulkUpdate() {
+        //given
+        for (int i = 0; i < 10; i++) {
+            memberRepository.save(new Member("member"+i, 16+i));
+        }
+
+        //when
+        final int resultCount = memberRepository.bulkAgePlus(20);
+
+        em.flush();
+        em.clear();
+
+        final Member member = memberRepository.findByNames(Lists.list("member5")).get(0);
+        System.out.println(member);
+
+        //then
+        assertThat(resultCount).isEqualTo(6);
     }
 }
