@@ -188,7 +188,7 @@ class MemberRepositoryTest {
     void testBulkUpdate() {
         //given
         for (int i = 0; i < 10; i++) {
-            memberRepository.save(new Member("member"+i, 16+i));
+            memberRepository.save(new Member("member" + i, 16 + i));
         }
 
         //when
@@ -202,5 +202,37 @@ class MemberRepositoryTest {
 
         //then
         assertThat(resultCount).isEqualTo(6);
+    }
+
+    @Test
+    void findMemberLazy() {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+
+        final Team teamA = new Team("teamA");
+        final Team teamB = new Team("teamB");
+
+        teamRepository.saveAll(Lists.list(teamA, teamB));
+
+        final Member member1 = new Member("member1", 19, teamA);
+        final Member member2 = new Member("member2", 19, teamB);
+
+        memberRepository.saveAll(Lists.list(member1, member2));
+
+        //영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        // when
+        // N+1 Problem
+        final List<Member> all = memberRepository.findByUsernameLike("member");
+
+        for (Member member : all) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member's team ClassName = "+ member.getTeam().getClass());
+            System.out.println("team = " + member.getTeam().getName());
+        }
+
     }
 }
