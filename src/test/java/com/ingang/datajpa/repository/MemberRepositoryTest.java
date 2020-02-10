@@ -235,4 +235,20 @@ class MemberRepositoryTest {
         }
 
     }
+
+    @Test
+    void callCustom() {
+        final Member member1 = new Member("member1", 19);
+        final Member member2 = new Member("member2", 19);
+
+        memberRepository.saveAll(Lists.list(member1, member2));
+
+        em.flush();
+        em.clear();
+
+
+        List<Member> memberCustom = memberRepository.findMemberCustom();
+
+
+    }
 }
