@@ -236,32 +236,19 @@ class MemberRepositoryTest {
 
     }
 
-
     @Test
-    void queryHint() {
-        //given
-        final Member member1 = new Member("member1", 10);
-        memberRepository.save(member1);
+    void callCustom() {
+        final Member member1 = new Member("member1", 19);
+        final Member member2 = new Member("member2", 19);
+
+        memberRepository.saveAll(Lists.list(member1, member2));
+
         em.flush();
         em.clear();
 
-        //when
-        final Member member = memberRepository.findByIdReadOnly(member1.getId()).get();
 
-        member.setUsername("member2");
+        List<Member> memberCustom = memberRepository.findMemberCustom();
 
-        em.flush();
-    }
 
-    @Test
-    void lock() {
-        //given
-        final Member member1 = new Member("member1", 10);
-        memberRepository.save(member1);
-        em.flush();
-        em.clear();
-
-        //when
-        final Member member = memberRepository.findLockByUsername("member1").get(0);
     }
 }
