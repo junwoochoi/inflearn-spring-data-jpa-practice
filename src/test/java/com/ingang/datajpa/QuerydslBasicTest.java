@@ -31,7 +31,7 @@ public class QuerydslBasicTest {
         em.persist(teamB);
 
         final Member member1 = new Member("member1", 19, teamA);
-        final Member member2 = new Member("member2", 19, teamB);
+        final Member member2 = new Member("member2", 18, teamB);
 
         em.persist(member1);
         em.persist(member2);
@@ -59,6 +59,23 @@ public class QuerydslBasicTest {
         final Member member1 = query
                 .selectFrom(member)
                 .where(member.username.eq("member1"))
+                .fetchOne();
+
+        assertThat(member1.getUsername()).isEqualTo("member1");
+
+    }
+
+    @Test
+    void searchAndParam() {
+        final JPAQueryFactory query = new JPAQueryFactory(em);
+
+
+        final Member member1 = query
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.eq(19)
+                )
                 .fetchOne();
 
         assertThat(member1.getUsername()).isEqualTo("member1");
