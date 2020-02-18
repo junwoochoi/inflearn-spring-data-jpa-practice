@@ -3,6 +3,7 @@ package com.ingang.datajpa.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -22,6 +23,10 @@ public class Member extends BaseEntity{
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id")
+    private Address address;
+
 
     public Member(String username, int age) {
         this.username = username;
@@ -34,6 +39,12 @@ public class Member extends BaseEntity{
         if (team != null) {
             changeTeam(team);
         }
+    }
+
+    public Member(String name, int age, Team team, Address address) {
+        this(name, age, team);
+
+        this.address = address;
     }
 
     public Member(String name) {
