@@ -1,6 +1,7 @@
 package com.ingang.datajpa.repository;
 
 import com.ingang.datajpa.dto.MemberDto;
+import com.ingang.datajpa.dto.MemberSearchCondition;
 import com.ingang.datajpa.entity.Member;
 import com.ingang.datajpa.entity.Team;
 import org.assertj.core.util.Lists;
@@ -248,7 +249,35 @@ class MemberRepositoryTest {
 
 
         List<Member> memberCustom = memberRepository.findMemberCustom();
+    }
 
+    @Test
+    void searchPageSimple() {
+        final Team teamA = new Team("teamA");
+        final Team teamB = new Team("teamB");
 
+        teamRepository.saveAll(Lists.list(teamA, teamB));
+
+        final Member member1 = new Member("member1", 110, teamA);
+        final Member member2 = new Member("member2", 120, teamA);
+        final Member member3 = new Member("member3", 130, teamB);
+        final Member member4 = new Member("member4", 140, teamB);
+
+        memberRepository.saveAll(Lists.list(member1, member2, member3, member4));
+
+        //영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        MemberSearchCondition memberSearchCondition = new MemberSearchCondition();
+        memberSearchCondition.setAgeLoe(140);
+        memberSearchCondition.setAgeGoe(110);
+
+        final PageRequest pageRequest = PageRequest.of(0, 2);
+
+        final Page<Member> members = memberRepository.searchPageSimple(memberSearchCondition, pageRequest);
+
+        assertThat(members.getSize()).isEqualTo(2);
+        assertThat(members.getContent()).extracting("username").containsExactly("member1", "member2");
     }
 }
